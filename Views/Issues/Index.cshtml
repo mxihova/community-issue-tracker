@@ -1,0 +1,235 @@
+﻿@model IEnumerable<Community_Issue_Tracker.Models.Issue>
+
+@{
+    ViewData["Title"] = "Issues";
+}
+
+<h2>Community Issues</h2>
+
+<div class="row mb-3">
+
+    <div class="col-md-4">
+        <a asp-action="Create" class="btn btn-primary">
+            Report New Issue
+        </a>
+    </div>
+
+    <div class="col-md-8">
+        <form method="get" asp-action="Index" class="row g-2">
+
+            <!-- CATEGORY FILTER -->
+            <div class="col-md-5">
+                <select name="categoryFilter"
+                        class="form-select"
+                        onchange="this.form.submit()">
+
+                    <option value="">All Categories</option>
+
+                    @foreach (var category in Enum.GetValues(typeof(Community_Issue_Tracker.Models.IssueCategory)))
+                    {
+                        <option value="@category"
+                                selected="@(ViewBag.CurrentCategory != null && ViewBag.CurrentCategory.ToString() == category.ToString())">
+                            @category
+                        </option>
+                    }
+
+                </select>
+            </div>
+
+            <!-- SORT DROPDOWN -->
+            <div class="col-md-5">
+                <select name="sortOrder"
+                        class="form-select"
+                        onchange="this.form.submit()">
+
+                    <option value="" selected="@(ViewBag.CurrentSort == null)">Sort by Date (Newest)</option>
+                    <option value="date_asc" selected="@(ViewBag.CurrentSort?.ToString() == "date_asc")">Sort by Date (Oldest)</option>
+                    <option value="priority_desc" selected="@(ViewBag.CurrentSort?.ToString() == "priority_desc")">Sort by Priority (High → Low)</option>
+                    <option value="priority_asc" selected="@(ViewBag.CurrentSort?.ToString() == "priority_asc")">Sort by Priority (Low → High)</option>
+
+                </select>
+            </div>
+
+            <!-- CLEAR BUTTON -->
+            <div class="col-md-2">
+                <a asp-action="Index" class="btn btn-outline-secondary w-100">
+                    Clear
+                </a>
+            </div>
+
+        </form>
+    </div>
+
+</div>
+<!-- DASHBOARD STATS -->
+<div class="row mb-4">
+
+    <div class="col-md-3">
+        <div class="dashboard-card metal-white text-center">
+            <h6>Total Issues</h6>
+            <h3 class="counter" data-target="@ViewBag.TotalIssues">0</h3>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="dashboard-card metal-silver text-center">
+            <h6>Open</h6>
+            <h3 class="counter" data-target="@ViewBag.OpenIssues">0</h3>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="dashboard-card metal-blue text-center">
+            <h6>In Progress</h6>
+            <h3 class="counter" data-target="@ViewBag.InProgressIssues">0</h3>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="dashboard-card metal-gold text-center">
+            <h6>Resolved</h6>
+            <h3 class="counter" data-target="@ViewBag.ResolvedIssues">0</h3>
+        </div>
+    </div>
+
+</div>
+
+
+<!-- STATUS CHART -->
+<div class="card shadow-sm border-0 mb-4" style="height: 400px;">
+    <div class="card-body">
+        <h5 class="mb-3">Issue Status Distribution</h5>
+        <canvas id="statusChart" style="max-height: 300px;"></canvas>
+    </div>
+</div>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Category</th>
+            <th>Priority</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var issue in Model)
+        {
+            <tr>
+                <td>@issue.Title</td>
+                <td>@issue.Category</td>
+
+                <!-- PRIORITY BADGES -->
+                <td>
+                    @if (issue.Priority == Community_Issue_Tracker.Models.IssuePriority.Critical)
+                    {
+                        <span class="badge bg-danger">Critical</span>
+                    }
+                    else if (issue.Priority == Community_Issue_Tracker.Models.IssuePriority.High)
+                    {
+                        <span class="badge bg-warning text-dark">High</span>
+                    }
+                    else if (issue.Priority == Community_Issue_Tracker.Models.IssuePriority.Medium)
+                    {
+                        <span class="badge bg-info text-dark">Medium</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">Low</span>
+                    }
+                </td>
+
+                <td>
+                    @if (issue.Status == IssueStatus.Open)
+                    {
+                        <span class="badge bg-danger">Open</span>
+                    }
+                    else if (issue.Status == IssueStatus.InProgress)
+                    {
+                        <span class="badge bg-warning text-dark">In Progress</span>
+                    }
+                    else if (issue.Status == IssueStatus.Resolved)
+                    {
+                        <span class="badge bg-success">Resolved</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">Closed</span>
+                    }
+                </td>
+
+                <td>@issue.CreatedAt.ToShortDateString()</td>
+
+                <td>
+                    <a asp-action="Details" asp-route-id="@issue.Id" class="me-2">
+                        View
+                    </a>
+                    <a asp-action="Edit" asp-route-id="@issue.Id" class="text-warning">
+                        Edit
+                    </a>
+                </td>
+
+            </tr>
+        }
+    </tbody>
+</table>
+
+@section Scripts {
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            // -----------------------------
+            // COUNTER ANIMATION (SAFE)
+            // -----------------------------
+            const counters = document.querySelectorAll('.counter');
+
+            counters.forEach(counter => {
+                const target = parseInt(counter.getAttribute('data-target')) || 0;
+                counter.innerText = target; // Direct set (no infinite animation)
+            });
+
+            // -----------------------------
+            // CHART (SAFE INITIALIZATION)
+            // -----------------------------
+            const chartCanvas = document.getElementById('statusChart');
+
+            if (chartCanvas) {
+
+                const ctx = chartCanvas.getContext('2d');
+
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Open', 'In Progress', 'Resolved'],
+                        datasets: [{
+                            data: [
+                                @ViewBag.OpenIssues ?? 0,
+                                @ViewBag.InProgressIssues ?? 0,
+                                @ViewBag.ResolvedIssues ?? 0
+                            ],
+                            backgroundColor: [
+                                '#dc3545',
+                                '#ffc107',
+                                '#28a745'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            }
+
+        });
+    </script>
+
+}

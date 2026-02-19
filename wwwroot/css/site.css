@@ -1,0 +1,156 @@
+/* Global font */
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f4f6f9;
+}
+
+/* Gradient Navbar */
+.navbar {
+    background: linear-gradient(90deg, #1e3c72, #2a5298);
+}
+
+/* Headings */
+h1, h2, h3 {
+    font-weight: 600;
+}
+
+/* Card-style container */
+.container {
+    background-color: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+}
+
+/* Buttons */
+.btn-primary {
+    background-color: #2a5298;
+    border: none;
+}
+
+    .btn-primary:hover {
+        background-color: #1e3c72;
+    }
+
+/* Tables */
+.table thead {
+    background-color: #2a5298;
+    color: white;
+}
+
+/* Badges */
+.badge {
+    padding: 6px 10px;
+    font-size: 0.8rem;
+    border-radius: 6px;
+}
+
+/* Footer */
+footer {
+    font-size: 0.85rem;
+}
+/* ------------------------------
+   NAVBAR HOVER ANIMATIONS
+---------------------------------*/
+
+.nav-link {
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+    /* Underline animation */
+    .nav-link::after {
+        content: "";
+        position: absolute;
+        width: 0%;
+        height: 2px;
+        bottom: 0;
+        left: 0;
+        background-color: white;
+        transition: width 0.3s ease;
+    }
+
+    .nav-link:hover::after {
+        width: 100%;
+    }
+
+    /* Slight lift effect */
+    .nav-link:hover {
+        transform: translateY(-2px);
+        opacity: 0.95;
+    }
+
+/* ------------------------------
+   BUTTON HOVER ANIMATION
+---------------------------------*/
+
+.btn {
+    transition: all 0.3s ease;
+}
+
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 14px rgba(0,0,0,0.15);
+    }
+
+/* ------------------------------
+   TABLE ROW HOVER EFFECT
+---------------------------------*/
+
+.table tbody tr {
+    transition: all 0.2s ease-in-out;
+}
+
+    .table tbody tr:hover {
+        background-color: #eef2ff;
+        transform: scale(1.01);
+    }
+
+/* ======================================
+   PREMIUM METALLIC DASHBOARD CARDS
+====================================== */
+
+.dashboard-card {
+    border-radius: 18px;
+    padding: 28px;
+    font-weight: 600;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+    transition: all 0.3s ease;
+    backdrop-filter: blur(6px);
+}
+
+    .dashboard-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 14px 30px rgba(0,0,0,0.20);
+    }
+
+/* Metallic White */
+.metal-white {
+    background: linear-gradient( 145deg, #ffffff, #f2f2f2, #e6e6e6 );
+    color: #222;
+}
+
+/* Metallic Silver */
+.metal-silver {
+    background: linear-gradient( 145deg, #d9d9d9, #bfbfbf, #e6e6e6 );
+    color: #222;
+}
+
+/* Metallic Blue */
+.metal-blue {
+    background: linear-gradient( 145deg, #4f8cff, #1f4fbf, #6ea8ff );
+    color: white;
+}
+
+/* Metallic Gold */
+.metal-gold {
+    background: linear-gradient( 145deg, #ffd700, #c9a200, #ffea85 );
+    color: #222;
+}
+
+/* Number Styling */
+.dashboard-card h3 {
+    font-size: 2.2rem;
+    margin-top: 10px;
+}
+

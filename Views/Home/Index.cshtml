@@ -1,0 +1,34 @@
+﻿@{
+    ViewData["Title"] = "Home";
+}
+
+<div class="text-center mt-5">
+
+    <h1 class="display-4">Community Issue Tracker</h1>
+
+    <p class="lead mt-3">
+        Report, track, and manage community issues efficiently.
+    </p>
+
+    <hr class="my-4" />
+
+    <p>
+        This platform allows community members to submit issues,
+        monitor their status, and stay informed about resolutions.
+    </p>
+
+    <div class="mt-4">
+        <a asp-controller="Issues"
+           asp-action="Index"
+           class="btn btn-primary btn-lg me-2">
+            View Issues
+        </a>
+
+        <a asp-controller="Issues"
+           asp-action="Create"
+           class="btn btn-success btn-lg">
+            Report New Issue
+        </a>
+    </div>
+
+</div>

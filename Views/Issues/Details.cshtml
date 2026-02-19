@@ -1,0 +1,23 @@
+﻿@model Community_Issue_Tracker.Models.Issue
+
+<h2>@Model.Title</h2>
+
+<hr />
+
+<p><strong>Description:</strong></p>
+<p>@Model.Description</p>
+
+<p><strong>Category:</strong> @Model.Category</p>
+
+<p>
+    <strong>Priority:</strong>
+    @Model.Priority
+</p>
+
+<p><strong>Status:</strong> @Model.Status</p>
+
+<p><strong>Created:</strong> @Model.CreatedAt</p>
+
+<p>
+    <a asp-action="Index">Back to List</a>
+</p>

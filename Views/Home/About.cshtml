@@ -1,0 +1,67 @@
+﻿@{
+    ViewData["Title"] = "About";
+}
+
+<div class="container mt-5">
+
+    <div class="text-center mb-5">
+        <h1 class="display-4">Community Issue Tracker</h1>
+
+        <p class="lead">
+            A structured platform for reporting and managing community issues.
+        </p>
+
+        <p class="text-muted">
+            Developed as part of a full-stack web development project using modern .NET technologies.
+        </p>
+    </div>
+
+    <hr />
+
+    <section class="mt-4">
+        <h3>Project Overview</h3>
+        <p>
+            The Community Issue Tracker is a web-based application designed to
+            streamline the reporting, tracking, and management of community-related issues.
+        </p>
+    </section>
+
+    <section class="mt-4">
+        <h3>Core Features</h3>
+        <ul>
+            <li>Submit new community issues</li>
+            <li>View reported issues</li>
+            <li>Track issue status</li>
+            <li>View detailed issue information</li>
+            <li>User authentication</li>
+        </ul>
+    </section>
+
+    <section class="mt-4">
+        <h3>Technologies Used</h3>
+        <ul>
+            <li>ASP.NET Core 8 MVC</li>
+            <li>Entity Framework Core</li>
+            <li>SQLite Database</li>
+            <li>ASP.NET Identity</li>
+            <li>Bootstrap</li>
+        </ul>
+    </section>
+
+    <hr class="mt-5" />
+
+    <div class="text-center mt-4">
+        <a asp-controller="Issues"
+           asp-action="Index"
+           class="btn btn-primary btn-lg me-2">
+            View Issues
+        </a>
+
+        <a asp-controller="Issues"
+           asp-action="Create"
+           class="btn btn-success btn-lg">
+            Report an Issue
+        </a>
+    </div>
+
+</div>
