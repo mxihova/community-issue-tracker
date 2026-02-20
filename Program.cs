@@ -6,16 +6,13 @@ using Community_Issue_Tracker.Data;
 var builder = WebApplication.CreateBuilder(args);
 
 // ------------------------------------------------------------
-// SERVICE REGISTRATION
+// SERVICES
 // ------------------------------------------------------------
 
-// MVC
 builder.Services.AddControllersWithViews();
-
-// Razor Pages (Identity)
 builder.Services.AddRazorPages();
 
-// SQLite database in writable Docker location
+// SQLite in writable Docker location
 var dbPath = Path.Combine("/tmp", "community_issues.db");
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -29,13 +26,13 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 .AddEntityFrameworkStores<ApplicationDbContext>();
 
 // ------------------------------------------------------------
-// BUILD APPLICATION
+// BUILD
 // ------------------------------------------------------------
 
 var app = builder.Build();
 
 // ------------------------------------------------------------
-// MIDDLEWARE PIPELINE
+// MIDDLEWARE
 // ------------------------------------------------------------
 
 if (!app.Environment.IsDevelopment())
@@ -50,7 +47,6 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Routes
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
@@ -58,17 +54,17 @@ app.MapControllerRoute(
 app.MapRazorPages();
 
 // ------------------------------------------------------------
-// 🔥 ENSURE DATABASE IS CREATED (IMPORTANT FOR RENDER)
+// 🔥 APPLY MIGRATIONS (PRODUCTION SAFE)
 // ------------------------------------------------------------
 
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    db.Database.EnsureCreated();
+    db.Database.Migrate();
 }
 
 // ------------------------------------------------------------
-// START APPLICATION (Render compatible)
+// START APP
 // ------------------------------------------------------------
 
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
