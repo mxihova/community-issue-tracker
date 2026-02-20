@@ -143,3 +143,4 @@ C:\Users\rutho\source\repos\Community Issue Tracker\Community Issue Tracker\obj\
 C:\Users\rutho\source\repos\Community Issue Tracker\Community Issue Tracker\obj\Debug\net8.0\Community Issue Tracker.pdb
 C:\Users\rutho\source\repos\Community Issue Tracker\Community Issue Tracker\obj\Debug\net8.0\Community Issue Tracker.genruntimeconfig.cache
 C:\Users\rutho\source\repos\Community Issue Tracker\Community Issue Tracker\obj\Debug\net8.0\ref\Community Issue Tracker.dll
+C:\Users\rutho\source\repos\Community Issue Tracker\Community Issue Tracker\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt

@@ -2,36 +2,28 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Community_Issue_Tracker.Data;
 
-// Create the application builder (bootstraps config + services)
+// Create the application builder
 var builder = WebApplication.CreateBuilder(args);
 
 // ------------------------------------------------------------
-// SERVICE REGISTRATION SECTION
-// Everything here registers dependencies into the DI container
+// SERVICE REGISTRATION
 // ------------------------------------------------------------
 
-// Add MVC controllers + views support
-// This enables the MVC pattern (Controllers + Razor Views)
+// MVC
 builder.Services.AddControllersWithViews();
 
-// Add Razor Pages support (required for Identity UI pages)
+// Razor Pages (Identity)
 builder.Services.AddRazorPages();
 
-// Build an absolute file path for the SQLite database file
-// This ensures EF migrations and runtime both use the same physical file location
-var dbPath = Path.Combine(builder.Environment.ContentRootPath, "community_issues.db");
-
-// Print actual resolved database file path
+// SQLite database in writable Docker location
+var dbPath = Path.Combine("/tmp", "community_issues.db");
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite($"Data Source={dbPath}"));
 
-
-// Register ASP.NET Core Identity system
-// Provides user accounts, login, password hashing, cookies
+// Identity
 builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 {
-    // Configure basic password rules (good for demo/learning apps)
     options.SignIn.RequireConfirmedAccount = false;
 })
 .AddEntityFrameworkStores<ApplicationDbContext>();
@@ -39,44 +31,45 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 // ------------------------------------------------------------
 // BUILD APPLICATION
 // ------------------------------------------------------------
+
 var app = builder.Build();
 
 // ------------------------------------------------------------
-// MIDDLEWARE PIPELINE SECTION
-// Order matters here — request flows through this pipeline
+// MIDDLEWARE PIPELINE
 // ------------------------------------------------------------
 
-// Production error handling
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
 
-// Force HTTPS
 app.UseHttpsRedirection();
-
-// Serve static files (css/js/images)
 app.UseStaticFiles();
-
-// Enable routing system
 app.UseRouting();
-
-// Enable authentication (reads login cookie → sets User)
 app.UseAuthentication();
-
-// Enable authorization (checks access rules)
 app.UseAuthorization();
 
-// Map MVC controller routes
+// Routes
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-// Map Identity Razor Pages endpoints
 app.MapRazorPages();
 
 // ------------------------------------------------------------
-// START APPLICATION
+// 🔥 ENSURE DATABASE IS CREATED (IMPORTANT FOR RENDER)
 // ------------------------------------------------------------
-app.Run();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    db.Database.EnsureCreated();
+}
+
+// ------------------------------------------------------------
+// START APPLICATION (Render compatible)
+// ------------------------------------------------------------
+
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+app.Run($"http://0.0.0.0:{port}");

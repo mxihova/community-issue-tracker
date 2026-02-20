@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Community Issue Tracker")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7593d7156161227ab3ebdc0990439e2e5706c0ee")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+82ff372766f314563fcbc56ecda502985f289ba8")]
 [assembly: System.Reflection.AssemblyProductAttribute("Community Issue Tracker")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Community Issue Tracker")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
