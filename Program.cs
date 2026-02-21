@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Community_Issue_Tracker.Data;
 
-// Create the application builder
 var builder = WebApplication.CreateBuilder(args);
 
 // ------------------------------------------------------------
@@ -12,13 +11,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 
-// SQLite in writable Docker location
-var dbPath = Path.Combine("/tmp", "community_issues.db");
+// 🔥 Use persistent container path
+var dbPath = Path.Combine(builder.Environment.ContentRootPath, "community_issues.db");
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite($"Data Source={dbPath}"));
 
-// Identity
 builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 {
     options.SignIn.RequireConfirmedAccount = false;
@@ -30,6 +28,16 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 // ------------------------------------------------------------
 
 var app = builder.Build();
+
+// ------------------------------------------------------------
+// APPLY MIGRATIONS BEFORE ANY REQUESTS
+// ------------------------------------------------------------
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    db.Database.Migrate();
+}
 
 // ------------------------------------------------------------
 // MIDDLEWARE
@@ -52,16 +60,6 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.MapRazorPages();
-
-// ------------------------------------------------------------
-// 🔥 APPLY MIGRATIONS (PRODUCTION SAFE)
-// ------------------------------------------------------------
-
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    db.Database.Migrate();
-}
 
 // ------------------------------------------------------------
 // START APP
