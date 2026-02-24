@@ -1,32 +1,37 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
 using Community_Issue_Tracker.Data;
 using Community_Issue_Tracker.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Community_Issue_Tracker.Controllers
 {
     public class IssuesController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<IdentityUser> _userManager;
 
-        // Constructor
-        public IssuesController(ApplicationDbContext context)
+        public IssuesController(
+            ApplicationDbContext context,
+            UserManager<IdentityUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
+        // =========================
         // GET: Issues
+        // =========================
         public async Task<IActionResult> Index(string sortOrder, IssueCategory? categoryFilter)
         {
             var issuesQuery = _context.Issues.AsQueryable();
 
-            // FILTER
             if (categoryFilter.HasValue)
             {
                 issuesQuery = issuesQuery.Where(i => i.Category == categoryFilter.Value);
             }
 
-            // SORT
             switch (sortOrder)
             {
                 case "priority_desc":
@@ -48,7 +53,6 @@ namespace Community_Issue_Tracker.Controllers
 
             var issuesList = await issuesQuery.ToListAsync();
 
-            // DASHBOARD COUNTS
             ViewBag.TotalIssues = await _context.Issues.CountAsync();
             ViewBag.OpenIssues = await _context.Issues.CountAsync(i => i.Status == IssueStatus.Open);
             ViewBag.InProgressIssues = await _context.Issues.CountAsync(i => i.Status == IssueStatus.InProgress);
@@ -57,44 +61,59 @@ namespace Community_Issue_Tracker.Controllers
             return View(issuesList);
         }
 
-        // GET: Issues/Create
+        // =========================
+        // GET: Create
+        // =========================
+        [Authorize]
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Issues/Create
+        // =========================
+        // POST: Create
+        // =========================
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public async Task<IActionResult> Create(Issue issue)
         {
             if (ModelState.IsValid)
             {
+                var user = await _userManager.GetUserAsync(User);
+                issue.CreatedByUserId = user?.Id;
+                issue.CreatedAt = DateTime.UtcNow;
+
                 _context.Add(issue);
                 await _context.SaveChangesAsync();
+
                 return RedirectToAction(nameof(Index));
             }
 
             return View(issue);
         }
 
-        // GET: Issues/Details/5
+        // =========================
+        // GET: Details
+        // =========================
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
                 return NotFound();
 
-            var issue = await _context.Issues.FirstOrDefaultAsync(m => m.Id == id);
+            var issue = await _context.Issues
+                .FirstOrDefaultAsync(m => m.Id == id);
 
             if (issue == null)
                 return NotFound();
 
             return View(issue);
-
-
         }
 
-        // GET: Issues/Edit/5
+        // =========================
+        // GET: Edit
+        // =========================
+        [Authorize]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -105,26 +124,61 @@ namespace Community_Issue_Tracker.Controllers
             if (issue == null)
                 return NotFound();
 
-            return View(issue);
-        }
+            var user = await _userManager.GetUserAsync(User);
 
-        // POST: Issues/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Issue issue)
-        {
-            if (id != issue.Id)
-                return NotFound();
-
-            if (ModelState.IsValid)
+            if (issue.CreatedByUserId != user?.Id &&
+                !User.IsInRole("Admin"))
             {
-                _context.Update(issue);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                return Forbid();
             }
 
             return View(issue);
         }
 
+        // =========================
+        // POST: Edit
+        // =========================
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize]
+        public async Task<IActionResult> Edit(int id, Issue updatedIssue)
+        {
+            if (id != updatedIssue.Id)
+                return NotFound();
+
+            var existingIssue = await _context.Issues.FindAsync(id);
+
+            if (existingIssue == null)
+                return NotFound();
+
+            var user = await _userManager.GetUserAsync(User);
+
+            if (existingIssue.CreatedByUserId != user?.Id &&
+                !User.IsInRole("Admin"))
+            {
+                return Forbid();
+            }
+
+            if (ModelState.IsValid)
+            {
+                // Allowed fields
+                existingIssue.Title = updatedIssue.Title;
+                existingIssue.Description = updatedIssue.Description;
+                existingIssue.Category = updatedIssue.Category;
+                existingIssue.Priority = updatedIssue.Priority;
+
+                // Only Admin can change Status
+                if (User.IsInRole("Admin"))
+                {
+                    existingIssue.Status = updatedIssue.Status;
+                }
+
+                await _context.SaveChangesAsync();
+
+                return RedirectToAction(nameof(Index));
+            }
+
+            return View(updatedIssue);
+        }
     }
 }
