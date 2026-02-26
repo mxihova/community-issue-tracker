@@ -68,7 +68,7 @@ using (var scope = app.Services.CreateScope())
     }
 
     // Optional: auto-assign Admin role to a specific email
-    var adminEmail = "your@email.com";
+    var adminEmail = "mxihova@gmail.com";
     var existingUser = await userManager.FindByEmailAsync(adminEmail);
 
     if (existingUser != null && !await userManager.IsInRoleAsync(existingUser, "Admin"))
@@ -105,8 +105,15 @@ app.MapControllerRoute(
 app.MapRazorPages();
 
 // ============================
-// START APP (Render Compatible)
+// START APP (Local + Render Compatible)
 // ============================
 
-var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-app.Run($"http://0.0.0.0:{port}");
+if (app.Environment.IsDevelopment())
+{
+    app.Run(); // uses launchSettings.json locally
+}
+else
+{
+    var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+    app.Run($"http://0.0.0.0:{port}");
+}

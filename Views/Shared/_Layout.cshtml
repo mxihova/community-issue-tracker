@@ -71,6 +71,9 @@
 
                 </ul>
 
+                <!-- 🔥 THIS WAS MISSING -->
+                <partial name="_LoginPartial" />
+
             </div>
         </div>
     </nav>
@@ -86,14 +89,12 @@
     <footer class="text-center text-muted mt-4 mb-3">
         <small>
             © @DateTime.Now.Year - Community Issue Tracker |
-            Built with ASP.NET Core MVC & SQLite
+            Built with ASP.NET Core MVC & PostgreSQL
         </small>
     </footer>
 
-    <!-- Scripts (ONLY ONCE) -->
+    <!-- Scripts -->
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-
-    <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     @RenderSection("Scripts", required: false)

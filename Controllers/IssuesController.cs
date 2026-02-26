@@ -21,35 +21,22 @@ namespace Community_Issue_Tracker.Controllers
         }
 
         // =========================
-        // GET: Issues
+        // PUBLIC - Anyone Can View
         // =========================
         public async Task<IActionResult> Index(string sortOrder, IssueCategory? categoryFilter)
         {
             var issuesQuery = _context.Issues.AsQueryable();
 
             if (categoryFilter.HasValue)
-            {
                 issuesQuery = issuesQuery.Where(i => i.Category == categoryFilter.Value);
-            }
 
-            switch (sortOrder)
+            issuesQuery = sortOrder switch
             {
-                case "priority_desc":
-                    issuesQuery = issuesQuery.OrderByDescending(i => i.Priority);
-                    break;
-
-                case "priority_asc":
-                    issuesQuery = issuesQuery.OrderBy(i => i.Priority);
-                    break;
-
-                case "date_asc":
-                    issuesQuery = issuesQuery.OrderBy(i => i.CreatedAt);
-                    break;
-
-                default:
-                    issuesQuery = issuesQuery.OrderByDescending(i => i.CreatedAt);
-                    break;
-            }
+                "priority_desc" => issuesQuery.OrderByDescending(i => i.Priority),
+                "priority_asc" => issuesQuery.OrderBy(i => i.Priority),
+                "date_asc" => issuesQuery.OrderBy(i => i.CreatedAt),
+                _ => issuesQuery.OrderByDescending(i => i.CreatedAt)
+            };
 
             var issuesList = await issuesQuery.ToListAsync();
 
@@ -61,8 +48,18 @@ namespace Community_Issue_Tracker.Controllers
             return View(issuesList);
         }
 
+        public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null) return NotFound();
+
+            var issue = await _context.Issues.FirstOrDefaultAsync(m => m.Id == id);
+            if (issue == null) return NotFound();
+
+            return View(issue);
+        }
+
         // =========================
-        // GET: Create
+        // CREATE - Logged In Only
         // =========================
         [Authorize]
         public IActionResult Create()
@@ -70,115 +67,78 @@ namespace Community_Issue_Tracker.Controllers
             return View();
         }
 
-        // =========================
-        // POST: Create
-        // =========================
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
         public async Task<IActionResult> Create(Issue issue)
         {
-            if (ModelState.IsValid)
-            {
-                var user = await _userManager.GetUserAsync(User);
-                issue.CreatedByUserId = user?.Id;
-                issue.CreatedAt = DateTime.UtcNow;
+            if (!ModelState.IsValid)
+                return View(issue);
 
-                _context.Add(issue);
-                await _context.SaveChangesAsync();
+            var user = await _userManager.GetUserAsync(User);
 
-                return RedirectToAction(nameof(Index));
-            }
+            issue.CreatedByUserId = user!.Id;
+            issue.CreatedAt = DateTime.UtcNow;
+            issue.Status = IssueStatus.Open; // Default status
 
-            return View(issue);
+            _context.Add(issue);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Index));
         }
 
         // =========================
-        // GET: Details
-        // =========================
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
-                return NotFound();
-
-            var issue = await _context.Issues
-                .FirstOrDefaultAsync(m => m.Id == id);
-
-            if (issue == null)
-                return NotFound();
-
-            return View(issue);
-        }
-
-        // =========================
-        // GET: Edit
+        // EDIT - Owner OR Admin
         // =========================
         [Authorize]
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null)
-                return NotFound();
+            if (id == null) return NotFound();
 
             var issue = await _context.Issues.FindAsync(id);
-
-            if (issue == null)
-                return NotFound();
+            if (issue == null) return NotFound();
 
             var user = await _userManager.GetUserAsync(User);
 
-            if (issue.CreatedByUserId != user?.Id &&
-                !User.IsInRole("Admin"))
-            {
+            if (issue.CreatedByUserId != user!.Id && !User.IsInRole("Admin"))
                 return Forbid();
-            }
 
             return View(issue);
         }
 
-        // =========================
-        // POST: Edit
-        // =========================
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
         public async Task<IActionResult> Edit(int id, Issue updatedIssue)
         {
-            if (id != updatedIssue.Id)
-                return NotFound();
+            if (id != updatedIssue.Id) return NotFound();
 
             var existingIssue = await _context.Issues.FindAsync(id);
-
-            if (existingIssue == null)
-                return NotFound();
+            if (existingIssue == null) return NotFound();
 
             var user = await _userManager.GetUserAsync(User);
 
-            if (existingIssue.CreatedByUserId != user?.Id &&
-                !User.IsInRole("Admin"))
-            {
+            if (existingIssue.CreatedByUserId != user!.Id && !User.IsInRole("Admin"))
                 return Forbid();
-            }
 
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
+                return View(updatedIssue);
+
+            // Everyone allowed to update basic fields
+            existingIssue.Title = updatedIssue.Title;
+            existingIssue.Description = updatedIssue.Description;
+            existingIssue.Category = updatedIssue.Category;
+            existingIssue.Priority = updatedIssue.Priority;
+
+            // Only Admin can change Status
+            if (User.IsInRole("Admin"))
             {
-                // Allowed fields
-                existingIssue.Title = updatedIssue.Title;
-                existingIssue.Description = updatedIssue.Description;
-                existingIssue.Category = updatedIssue.Category;
-                existingIssue.Priority = updatedIssue.Priority;
-
-                // Only Admin can change Status
-                if (User.IsInRole("Admin"))
-                {
-                    existingIssue.Status = updatedIssue.Status;
-                }
-
-                await _context.SaveChangesAsync();
-
-                return RedirectToAction(nameof(Index));
+                existingIssue.Status = updatedIssue.Status;
             }
 
-            return View(updatedIssue);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Index));
         }
     }
 }
